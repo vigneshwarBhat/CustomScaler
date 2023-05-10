@@ -1,0 +1,116 @@
+2023-05-08 11:53:15.211 +05:30 [INF] Worker running at: "2023-05-08T11:53:15.1990118+05:30"
+2023-05-08 11:53:15.248 +05:30 [INF] HPA target deployment: api-deployment, Min replica:2, Max replica:5, HpaTarget:100M, Metrics query for scaling: container_memory_working_set_bytes{0}
+2023-05-08 11:53:18.761 +05:30 [ERR] Exception occured :System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it. (127.0.0.1:58727)
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource.GetResult(Int16 token)
+   at System.Net.Sockets.Socket.<ConnectAsync>g__WaitForConnectWithCancellation|277_0(AwaitableSocketAsyncEventArgs saea, ValueTask connectTask, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectToTcpHostAsync(String host, Int32 port, HttpRequestMessage initialRequest, Boolean async, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpConnectionPool.ConnectToTcpHostAsync(String host, Int32 port, HttpRequestMessage initialRequest, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.AddHttp11ConnectionAsync(HttpRequestMessage request)
+   at System.Threading.Tasks.TaskCompletionSourceWithCancellation`1.WaitWithCancellationAsync(CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttp11ConnectionAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingHttpMessageHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingScopeHttpMessageHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+   at CustomScaler.Services.PrometheusService.QueryPrometheus(String query, DateTime start, DateTime end) in C:\CustomScaler\CustomScaler\Services\PrometheusService.cs:line 25
+   at CustomScaler.Worker.GetAverageMemory(V1PodList podList, String query) in C:\CustomScaler\CustomScaler\Worker.cs:line 155
+   at CustomScaler.Worker.ScaleHorizontally() in C:\CustomScaler\CustomScaler\Worker.cs:line 67
+   at CustomScaler.Worker.ExecuteAsync(CancellationToken stoppingToken) in C:\CustomScaler\CustomScaler\Worker.cs:line 41
+2023-05-08 11:54:18.760 +05:30 [INF] Worker running at: "2023-05-08T11:54:18.7600123+05:30"
+2023-05-08 11:54:18.760 +05:30 [INF] HPA target deployment: api-deployment, Min replica:2, Max replica:5, HpaTarget:100M, Metrics query for scaling: container_memory_working_set_bytes{0}
+2023-05-08 11:54:21.012 +05:30 [ERR] Exception occured :System.Net.Http.HttpRequestException: No connection could be made because the target machine actively refused it. (127.0.0.1:58727)
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource.GetResult(Int16 token)
+   at System.Net.Sockets.Socket.<ConnectAsync>g__WaitForConnectWithCancellation|277_0(AwaitableSocketAsyncEventArgs saea, ValueTask connectTask, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectToTcpHostAsync(String host, Int32 port, HttpRequestMessage initialRequest, Boolean async, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpConnectionPool.ConnectToTcpHostAsync(String host, Int32 port, HttpRequestMessage initialRequest, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.AddHttp11ConnectionAsync(HttpRequestMessage request)
+   at System.Threading.Tasks.TaskCompletionSourceWithCancellation`1.WaitWithCancellationAsync(CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.GetHttp11ConnectionAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingHttpMessageHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingScopeHttpMessageHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+   at CustomScaler.Services.PrometheusService.QueryPrometheus(String query, DateTime start, DateTime end) in C:\CustomScaler\CustomScaler\Services\PrometheusService.cs:line 25
+   at CustomScaler.Worker.GetAverageMemory(V1PodList podList, String query) in C:\CustomScaler\CustomScaler\Worker.cs:line 155
+   at CustomScaler.Worker.ScaleHorizontally() in C:\CustomScaler\CustomScaler\Worker.cs:line 67
+   at CustomScaler.Worker.ExecuteAsync(CancellationToken stoppingToken) in C:\CustomScaler\CustomScaler\Worker.cs:line 41
+2023-05-08 11:54:47.506 +05:30 [INF] Worker running at: "2023-05-08T11:54:47.4964765+05:30"
+2023-05-08 11:54:47.537 +05:30 [INF] HPA target deployment: api-deployment, Min replica:2, Max replica:5, HpaTarget:100M, Metrics query for scaling: container_memory_working_set_bytes{0}
+2023-05-08 11:54:48.069 +05:30 [INF] HPA: No changes in number of replicas for api-deployment
+2023-05-08 11:54:56.789 +05:30 [INF] VPA: Vpa target: api-deployment, MaxMemory:800M, metrics for scaling: sum(rate(hpaexample_Largecart_Number{0}[2m])) by (machine) && container_memory_working_set_bytes{0} 
+2023-05-08 11:55:51.700 +05:30 [INF] VPA: No changes since memory consuption 45174784 is not more than memory requested for the pod api-deployment-74ddcfb7cf-7v76f
+2023-05-08 11:56:03.010 +05:30 [INF] VPA: No changes since memory consuption 53641216 is not more than memory requested for the pod api-deployment-74ddcfb7cf-gj7vn
+2023-05-08 11:56:20.900 +05:30 [INF] VPA: No changes since memory consuption 149221376 is not more than memory requested for the pod api-deployment-74ddcfb7cf-glmzs
+2023-05-08 11:56:32.055 +05:30 [INF] VPA: No changes since memory consuption 70590464 is not more than memory requested for the pod api-deployment-74ddcfb7cf-mw9rz
+2023-05-08 11:56:41.238 +05:30 [INF] VPA: No changes since memory consuption 147496960 is not more than memory requested for the pod api-deployment-74ddcfb7cf-w44th
+2023-05-08 11:56:44.176 +05:30 [INF] Worker running ended at: "2023-05-08T11:56:44.1760346+05:30"
+2023-05-08 11:57:44.178 +05:30 [INF] Worker running at: "2023-05-08T11:57:44.1782762+05:30"
+2023-05-08 11:57:44.178 +05:30 [INF] HPA target deployment: api-deployment, Min replica:2, Max replica:5, HpaTarget:100M, Metrics query for scaling: container_memory_working_set_bytes{0}
+2023-05-08 11:57:44.210 +05:30 [INF] HPA: No changes in number of replicas for api-deployment
+2023-05-08 11:57:56.462 +05:30 [INF] VPA: Vpa target: api-deployment, MaxMemory:800M, metrics for scaling: sum(rate(hpaexample_Largecart_Number{0}[2m])) by (machine) && container_memory_working_set_bytes{0} 
+2023-05-08 11:57:56.475 +05:30 [INF] VPA: No changes since memory consuption 46452736 is not more than memory requested for the pod api-deployment-74ddcfb7cf-7v76f
+2023-05-08 11:57:56.478 +05:30 [INF] VPA: No changes since memory consuption 54030336 is not more than memory requested for the pod api-deployment-74ddcfb7cf-gj7vn
+2023-05-08 11:57:56.481 +05:30 [INF] VPA: No changes since memory consuption 149344256 is not more than memory requested for the pod api-deployment-74ddcfb7cf-glmzs
+2023-05-08 11:57:56.483 +05:30 [INF] VPA: No changes since memory consuption 71073792 is not more than memory requested for the pod api-deployment-74ddcfb7cf-mw9rz
+2023-05-08 11:57:56.486 +05:30 [INF] VPA: No changes since memory consuption 147812352 is not more than memory requested for the pod api-deployment-74ddcfb7cf-w44th
+2023-05-08 11:57:56.486 +05:30 [INF] Worker running ended at: "2023-05-08T11:57:56.4867425+05:30"
+2023-05-08 11:58:56.506 +05:30 [INF] Worker running at: "2023-05-08T11:58:56.5063861+05:30"
+2023-05-08 11:58:56.506 +05:30 [INF] HPA target deployment: api-deployment, Min replica:2, Max replica:5, HpaTarget:100M, Metrics query for scaling: container_memory_working_set_bytes{0}
+2023-05-08 11:58:56.543 +05:30 [INF] HPA: No changes in number of replicas for api-deployment
+2023-05-08 11:58:56.543 +05:30 [INF] VPA: Vpa target: api-deployment, MaxMemory:800M, metrics for scaling: sum(rate(hpaexample_Largecart_Number{0}[2m])) by (machine) && container_memory_working_set_bytes{0} 
+2023-05-08 11:58:56.557 +05:30 [INF] VPA: No changes since memory consuption 46518272 is not more than memory requested for the pod api-deployment-74ddcfb7cf-7v76f
+2023-05-08 11:58:56.559 +05:30 [INF] VPA: No changes since memory consuption 60092416 is not more than memory requested for the pod api-deployment-74ddcfb7cf-gj7vn
+2023-05-08 11:58:56.562 +05:30 [INF] VPA: No changes since memory consuption 150441984 is not more than memory requested for the pod api-deployment-74ddcfb7cf-glmzs
+2023-05-08 11:58:56.564 +05:30 [INF] VPA: No changes since memory consuption 73048064 is not more than memory requested for the pod api-deployment-74ddcfb7cf-mw9rz
+2023-05-08 11:58:56.566 +05:30 [INF] VPA: No changes since memory consuption 144248832 is not more than memory requested for the pod api-deployment-74ddcfb7cf-w44th
+2023-05-08 11:58:56.566 +05:30 [INF] Worker running ended at: "2023-05-08T11:58:56.5668982+05:30"
+2023-05-08 11:59:56.578 +05:30 [INF] Worker running at: "2023-05-08T11:59:56.5785534+05:30"
+2023-05-08 11:59:56.578 +05:30 [INF] HPA target deployment: api-deployment, Min replica:2, Max replica:5, HpaTarget:100M, Metrics query for scaling: container_memory_working_set_bytes{0}
+2023-05-08 11:59:56.599 +05:30 [INF] HPA: No changes in number of replicas for api-deployment
+2023-05-08 11:59:56.599 +05:30 [INF] VPA: Vpa target: api-deployment, MaxMemory:800M, metrics for scaling: sum(rate(hpaexample_Largecart_Number{0}[2m])) by (machine) && container_memory_working_set_bytes{0} 
+2023-05-08 11:59:56.610 +05:30 [INF] VPA: No changes since memory consuption 46698496 is not more than memory requested for the pod api-deployment-74ddcfb7cf-7v76f
+2023-05-08 11:59:56.613 +05:30 [INF] VPA: No changes since memory consuption 62234624 is not more than memory requested for the pod api-deployment-74ddcfb7cf-gj7vn
+2023-05-08 11:59:56.615 +05:30 [INF] VPA: No changes since memory consuption 152621056 is not more than memory requested for the pod api-deployment-74ddcfb7cf-glmzs
+2023-05-08 11:59:56.617 +05:30 [INF] VPA: No changes since memory consuption 74813440 is not more than memory requested for the pod api-deployment-74ddcfb7cf-mw9rz
+2023-05-08 11:59:56.620 +05:30 [INF] VPA: No changes since memory consuption 144183296 is not more than memory requested for the pod api-deployment-74ddcfb7cf-w44th
+2023-05-08 11:59:56.620 +05:30 [INF] Worker running ended at: "2023-05-08T11:59:56.6200759+05:30"
+2023-05-08 12:00:56.624 +05:30 [INF] Worker running at: "2023-05-08T12:00:56.6245023+05:30"
+2023-05-08 12:00:56.624 +05:30 [INF] HPA target deployment: api-deployment, Min replica:2, Max replica:5, HpaTarget:100M, Metrics query for scaling: container_memory_working_set_bytes{0}
+2023-05-08 12:00:56.645 +05:30 [INF] HPA: No changes in number of replicas for api-deployment
+2023-05-08 12:00:56.645 +05:30 [INF] VPA: Vpa target: api-deployment, MaxMemory:800M, metrics for scaling: sum(rate(hpaexample_Largecart_Number{0}[2m])) by (machine) && container_memory_working_set_bytes{0} 
+2023-05-08 12:00:56.656 +05:30 [INF] VPA: No changes since memory consuption 47591424 is not more than memory requested for the pod api-deployment-74ddcfb7cf-7v76f
+2023-05-08 12:00:56.659 +05:30 [INF] VPA: No changes since memory consuption 76357632 is not more than memory requested for the pod api-deployment-74ddcfb7cf-gj7vn
+2023-05-08 12:00:56.661 +05:30 [INF] VPA: No changes since memory consuption 152657920 is not more than memory requested for the pod api-deployment-74ddcfb7cf-glmzs
+2023-05-08 12:00:56.663 +05:30 [INF] VPA: No changes since memory consuption 76742656 is not more than memory requested for the pod api-deployment-74ddcfb7cf-mw9rz
+2023-05-08 12:00:56.665 +05:30 [INF] VPA: No changes since memory consuption 144191488 is not more than memory requested for the pod api-deployment-74ddcfb7cf-w44th
+2023-05-08 12:00:56.665 +05:30 [INF] Worker running ended at: "2023-05-08T12:00:56.6659591+05:30"
+2023-05-08 12:01:56.671 +05:30 [INF] Worker running at: "2023-05-08T12:01:56.6717441+05:30"
+2023-05-08 12:01:56.678 +05:30 [INF] HPA target deployment: api-deployment, Min replica:2, Max replica:5, HpaTarget:100M, Metrics query for scaling: container_memory_working_set_bytes{0}
+2023-05-08 12:01:56.756 +05:30 [INF] HPA: No changes in number of replicas for api-deployment
+2023-05-08 12:01:56.756 +05:30 [INF] VPA: Vpa target: api-deployment, MaxMemory:800M, metrics for scaling: sum(rate(hpaexample_Largecart_Number{0}[2m])) by (machine) && container_memory_working_set_bytes{0} 
+2023-05-08 12:01:56.775 +05:30 [INF] VPA: No changes since memory consuption 48115712 is not more than memory requested for the pod api-deployment-74ddcfb7cf-7v76f
+2023-05-08 12:01:56.778 +05:30 [INF] VPA: No changes since memory consuption 74059776 is not more than memory requested for the pod api-deployment-74ddcfb7cf-gj7vn
+2023-05-08 12:01:56.781 +05:30 [INF] VPA: No changes since memory consuption 150405120 is not more than memory requested for the pod api-deployment-74ddcfb7cf-glmzs
+2023-05-08 12:01:56.784 +05:30 [INF] VPA: No changes since memory consuption 76959744 is not more than memory requested for the pod api-deployment-74ddcfb7cf-mw9rz
+2023-05-08 12:01:56.787 +05:30 [INF] VPA: No changes since memory consuption 144093184 is not more than memory requested for the pod api-deployment-74ddcfb7cf-w44th
+2023-05-08 12:01:56.787 +05:30 [INF] Worker running ended at: "2023-05-08T12:01:56.7872706+05:30"
+2023-05-08 12:02:56.792 +05:30 [INF] Worker running at: "2023-05-08T12:02:56.7922905+05:30"
+2023-05-08 12:02:56.821 +05:30 [INF] HPA target deployment: api-deployment, Min replica:2, Max replica:5, HpaTarget:100M, Metrics query for scaling: container_memory_working_set_bytes{0}
+2023-05-08 12:02:56.848 +05:30 [INF] HPA: No changes in number of replicas for api-deployment
+2023-05-08 12:02:56.848 +05:30 [INF] VPA: Vpa target: api-deployment, MaxMemory:800M, metrics for scaling: sum(rate(hpaexample_Largecart_Number{0}[2m])) by (machine) && container_memory_working_set_bytes{0} 
+2023-05-08 12:03:03.626 +05:30 [INF] VPA: No changes since memory consuption 48369664 is not more than memory requested for the pod api-deployment-74ddcfb7cf-7v76f
+2023-05-08 12:03:06.769 +05:30 [INF] VPA: No changes since memory consuption 74051584 is not more than memory requested for the pod api-deployment-74ddcfb7cf-gj7vn
+2023-05-08 14:31:09.906 +05:30 [INF] Worker running at: "2023-05-08T14:31:09.8961447+05:30"
+2023-05-08 14:31:14.229 +05:30 [INF] HPA target deployment: api-deployment, Min replica:2, Max replica:5, HpaTarget:100M, Metrics query for scaling: container_memory_working_set_bytes{0}

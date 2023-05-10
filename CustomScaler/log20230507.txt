@@ -1,0 +1,13 @@
+2023-05-07 15:16:30.274 +05:30 [INF] Worker running at: "2023-05-07T15:16:30.0835344+05:30"
+2023-05-07 15:16:30.591 +05:30 [INF] HPA target deployment: api-deployment, Min replica:2, Max replica:5, HpaTarget:80M, Metrics query for scaling: container_memory_working_set_bytes{0}
+2023-05-07 15:18:11.285 +05:30 [ERR] Exception occured :System.Threading.Tasks.TaskCanceledException: A task was canceled.
+   at System.Net.Http.HttpClient.HandleFailure(Exception e, Boolean telemetryStarted, HttpResponseMessage response, CancellationTokenSource cts, CancellationToken cancellationToken, CancellationTokenSource pendingRequestsCts)
+   at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+   at k8s.Kubernetes.SendRequestRaw(String requestContent, HttpRequestMessage httpRequest, CancellationToken cancellationToken)
+   at k8s.AbstractKubernetes.k8s.IAppsV1Operations.ListNamespacedDeploymentWithHttpMessagesAsync(String namespaceParameter, Nullable`1 allowWatchBookmarks, String continueParameter, String fieldSelector, String labelSelector, Nullable`1 limit, String resourceVersion, String resourceVersionMatch, Nullable`1 sendInitialEvents, Nullable`1 timeoutSeconds, Nullable`1 watch, Nullable`1 pretty, IReadOnlyDictionary`2 customHeaders, CancellationToken cancellationToken)
+   at k8s.AppsV1OperationsExtensions.ListNamespacedDeploymentAsync(IAppsV1Operations operations, String namespaceParameter, Nullable`1 allowWatchBookmarks, String continueParameter, String fieldSelector, String labelSelector, Nullable`1 limit, String resourceVersion, String resourceVersionMatch, Nullable`1 sendInitialEvents, Nullable`1 timeoutSeconds, Nullable`1 watch, Nullable`1 pretty, CancellationToken cancellationToken)
+   at CustomScaler.Services.KuberenetesService.GetDeployment(String deploymentName, String namespace) in C:\CustomScaler\CustomScaler\Services\KuberenetesService.cs:line 101
+   at CustomScaler.Worker.ScaleHorizontally() in C:\CustomScaler\CustomScaler\Worker.cs:line 59
+   at CustomScaler.Worker.ExecuteAsync(CancellationToken stoppingToken) in C:\CustomScaler\CustomScaler\Worker.cs:line 41
+2023-05-07 15:19:11.307 +05:30 [INF] Worker running at: "2023-05-07T15:19:11.3072509+05:30"
+2023-05-07 15:19:11.307 +05:30 [INF] HPA target deployment: api-deployment, Min replica:2, Max replica:5, HpaTarget:80M, Metrics query for scaling: container_memory_working_set_bytes{0}
