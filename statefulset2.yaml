@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: webapp-statefulset
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/path: '/metrics'
+    prometheus.io/port: '80'
+    prometheus.io/interval: '6s'
+  labels:
+    app: webapp
+spec:
+  selector:
+    matchLabels:
+      app: webapp # has to match .spec.template.metadata.labels
+  serviceName: "webapp-service"
+  replicas: 2 # by default is 1
+  minReadySeconds: 10 # by default is 0
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      containers:
+        - name: webapp
+          image: vigneshwar11/hpaexample:v3
+          resources:
+              requests:
+                  memory: "150M"
+                  cpu: "20m"
+              limits:
+                  memory: "500M"
+          ports:
+            - containerPort: 80
+              name: web-app
+      
+           
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp-service
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/path: '/metrics'
+    prometheus.io/port: '80'
+    prometheus.io/interval: '6s'
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    name: webapp-service
+  selector:
+    app: webapp
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-webappservice
+  annotations:
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "route"
+    nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+    prometheus.io/scrape: 'true'
+    prometheus.io/path: '/metrics'
+    prometheus.io/port: '80'
+    prometheus.io/interval: '6s'
+
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: cart.example.com
+    http:
+      paths:
+      - path: /api/Cart
+        pathType: Prefix
+        backend:
+          service:
+            name: webapp-service
+            port: 
+              number: 80
+
