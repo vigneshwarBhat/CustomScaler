@@ -96,6 +96,22 @@ namespace CustomScaler.Services
 
         }
 
+        public async Task<V1PodList?> GetStatefullPods(V1StatefulSet statefulSet, string @namespace = "default")
+        {
+
+            var selector = statefulSet.Spec.Selector.MatchLabels.TryGetValue("app", out var value) ? value : null;
+            if (selector == null)
+                return null;
+
+            var podList = await _kubernetesClient.CoreV1.ListNamespacedPodAsync(@namespace, labelSelector: $"app={selector}");
+            if (podList == null || !podList.Items.Any())
+            {
+                return null;
+            }
+            return podList;
+
+        }
+
         public async Task<V1Deployment?> GetDeployment(string deploymentName, string @namespace = "default")
         {
             var deployments = await _kubernetesClient.AppsV1.ListNamespacedDeploymentAsync(@namespace);
@@ -103,13 +119,91 @@ namespace CustomScaler.Services
 
         }
 
-        public async Task<V1Scale?> PatchReplicaSet(string deploymentName, int? replicas, string @namespace = "default")
+        public async Task<V1StatefulSet?> GetStatefulset(string name, string @namespace = "default")
+        {
+            var deployments = await _kubernetesClient.AppsV1.ListNamespacedStatefulSetAsync(@namespace);
+            return deployments.Items.FirstOrDefault(x => x.Name() == name);
+
+        }
+
+        public async Task<V1Scale?> PatchDeploymentReplicaSet(string deploymentName, int? replicas, string @namespace = "default")
         {
             var patchStr = "[{\"op\":\"replace\",\"path\":\"/spec/replicas\",\"value\":" + replicas + "}]";
             var patchRequest = new V1Patch(patchStr, V1Patch.PatchType.JsonPatch);
             return await _kubernetesClient.AppsV1.PatchNamespacedDeploymentScaleAsync(patchRequest, deploymentName, @namespace);
         }
 
+        public async Task<V1Scale?> PatchStatefulsetReplicaSet(string deploymentName, int? replicas, string @namespace = "default")
+        {
+            var patchStr = "[{\"op\":\"replace\",\"path\":\"/spec/replicas\",\"value\":" + replicas + "}]";
+            var patchRequest = new V1Patch(patchStr, V1Patch.PatchType.JsonPatch);
+            return await _kubernetesClient.AppsV1.PatchNamespacedStatefulSetScaleAsync(patchRequest, deploymentName, @namespace);
+        }
+
+        public async Task<V1Service?> CreateNewService(V1Service service, string Name, string @namespace = "default")
+        {
+            var v1Service = new V1Service
+            {
+                Metadata = new V1ObjectMeta
+                {
+                    Name = Name,
+                    Annotations = service.Metadata.Annotations
+                },
+                Spec = new V1ServiceSpec
+                {
+                    Type = service.Spec.Type,
+                    ExternalTrafficPolicy = service.Spec.ExternalTrafficPolicy,
+                    Selector = new Dictionary<string, string> { { "statefulset.kubernetes.io/pod-name", Name } },
+                    Ports = new V1ServicePort[]
+                    {
+                        new V1ServicePort
+                        {
+                            Protocol="TCP",
+                            Port=80,
+                            TargetPort=service.Spec.Ports[0].TargetPort,
+                            NodePort=service.Spec.Ports[0].NodePort+1
+                        }
+                    }
+                }
+            };
+
+            return await _kubernetesClient.CoreV1.CreateNamespacedServiceAsync(v1Service, @namespace);
+
+        }
+
+        public async Task<V1Service?> GetService(string serviceName, string @namespace = "default")
+        {
+            try
+            {
+                var services = await _kubernetesClient.CoreV1.ReadNamespacedServiceAsync(serviceName, @namespace);
+                return services;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex);
+                return null;
+            }
+        }
+
+        public async Task<V1Service?> DeleteService(string serviceName, string @namespace = "default")
+        {
+            var services = await _kubernetesClient.CoreV1.DeleteNamespacedServiceAsync(serviceName, @namespace);
+            return services;
+        }
+
+        public async Task<V1ServiceList?> GetServices(string selector, string @namespace = "default")
+        {
+            try
+            {
+                var services = await _kubernetesClient.CoreV1.ListNamespacedServiceAsync(@namespace, labelSelector: $"app={selector}");
+                return services;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex);
+                return null;
+            }
+        }
 
     }
 }

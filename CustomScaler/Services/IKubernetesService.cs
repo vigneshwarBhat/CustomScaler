@@ -17,6 +17,20 @@ namespace CustomScaler.Services
         Task<bool> DeletePod(string podName, string @namespace = "default");
 
         Task<V1Deployment?> GetDeployment(string deploymentName, string @namespace = "default");
-        Task<V1Scale?> PatchReplicaSet(string deploymentName, int? replicas, string @namespace = "default");
+
+        Task<V1Scale?> PatchDeploymentReplicaSet(string deploymentName, int? replicas, string @namespace = "default");
+
+        Task<V1Scale?> PatchStatefulsetReplicaSet(string deploymentName, int? replicas, string @namespace = "default");
+        Task<V1StatefulSet?> GetStatefulset(string name, string @namespace = "default");
+
+        Task<V1PodList?> GetStatefullPods(V1StatefulSet statefulSet, string @namespace = "default");
+
+        Task<V1Service?> GetService(string serviceName, string @namespace = "default");
+
+        Task<V1Service?> CreateNewService(V1Service service, string Name, string @namespace = "default");
+
+        Task<V1Service?> DeleteService(string serviceName, string @namespace = "default");
+
+        Task<V1ServiceList?> GetServices(string selector, string @namespace = "default");
     }
 }

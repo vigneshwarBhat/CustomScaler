@@ -1,4 +1,6 @@
-﻿namespace CustomScaler.Model
+﻿using static CustomScaler.Model.HpaTarget;
+
+namespace CustomScaler.Model
 {
     public class Scaling
     {
@@ -8,7 +10,8 @@
     }
     public class HpaTarget
     {
-        public string DeploymentName { get; set; }
+        public string Name { get; set; }
+        public K8Kind K8Kind {get;set; }
         public int MaxReplica { get; set; }
         public int MinReplica { get; set; }
         public string PromoQuery { get; set; }
@@ -17,8 +20,16 @@
 
     public class VpaTarget
     {
-        public string DeploymentName { get; set; }
+
+        public string Name { get; set; }
+        public K8Kind K8Kind { get; set; }
         public string MaxMemory { get; set; }
         public string PromoQuery { get; set; }
+    }
+
+    public enum K8Kind
+    {
+        Deployment,
+        Statefulset
     }
 }
