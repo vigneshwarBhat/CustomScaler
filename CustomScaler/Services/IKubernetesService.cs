@@ -32,5 +32,8 @@ namespace CustomScaler.Services
         Task<V1Service?> DeleteService(string serviceName, string @namespace = "default");
 
         Task<V1ServiceList?> GetServices(string selector, string @namespace = "default");
+
+        Task<PodMetricsList?> GetMetrics(string @namespace = "default");
+
     }
 }

@@ -205,5 +205,11 @@ namespace CustomScaler.Services
             }
         }
 
+        public async Task<PodMetricsList?> GetMetrics(string @namespace = "default")
+        {
+           var metricsList = await _kubernetesClient.GetKubernetesPodsMetricsByNamespaceAsync(@namespace);
+            return metricsList;
+        }
+
     }
 }

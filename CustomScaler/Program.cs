@@ -4,6 +4,7 @@ using CustomScaler.Services;
 using k8s;
 using Serilog;
 
+
 var host = Host.CreateDefaultBuilder(args).
     ConfigureAppConfiguration(
         (hostContext, config) =>

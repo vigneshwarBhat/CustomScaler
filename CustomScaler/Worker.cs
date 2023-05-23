@@ -3,6 +3,7 @@ using CustomScaler.Services;
 using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Options;
+using System.Resources;
 
 namespace CustomScaler
 {
@@ -72,7 +73,7 @@ namespace CustomScaler
             }
         }
 
-        public async Task ScaleHorizontally(HpaTarget target)
+        private async Task ScaleHorizontally(HpaTarget target)
         {
             _logger.LogInformation($"HPA(Deployment): Target deployment: {target.Name}, Min replica:{target.MinReplica}, Max replica:{target.MaxReplica}, HpaTarget:{target.TargetLimit}, Metrics query for scaling: {target.PromoQuery}");
             var deployment = await _kubernetesService.GetDeployment(target.Name);
@@ -83,7 +84,7 @@ namespace CustomScaler
             }
             //3 pods, with 79, average
             var pods = await _kubernetesService.GetPods(deployment);
-            var (averageMemory, averageWithOneLessPod) = await GetAverageMemory(pods, target.PromoQuery);
+            var (averageMemory, averageWithOneLessPod) = await GetAverageMemory(pods, target.PromoQuery, target.ContainerName);
             var limitSetByuser = KubernetesJson.Deserialize<ResourceQuantity>($"\"{target.TargetLimit}\"");
             if (averageMemory >= limitSetByuser && pods?.Items.Count < target.MaxReplica)
             {
@@ -105,7 +106,7 @@ namespace CustomScaler
         }
 
 
-        public async Task ScaleHorizontallyStatefulset(HpaTarget target)
+        private async Task ScaleHorizontallyStatefulset(HpaTarget target)
         {
 
             _logger.LogInformation($"HPA(Statefulset): target deployment: {target.Name}, Min replica:{target.MinReplica}, Max replica:{target.MaxReplica}, HpaTarget:{target.TargetLimit}, Metrics query for scaling: {target.PromoQuery}");
@@ -118,7 +119,7 @@ namespace CustomScaler
             }
             //3 pods, with 79, average
             var pods = await _kubernetesService.GetStatefullPods(statefulSet);
-            var (averageMemory, averageWithOneLessPod) = await GetAverageMemory(pods, target.PromoQuery);
+            var (averageMemory, averageWithOneLessPod) = await GetAverageMemory(pods, target.PromoQuery, target.ContainerName);
             var limitSetByuser = KubernetesJson.Deserialize<ResourceQuantity>($"\"{target.TargetLimit}\"");
             if (averageMemory >= limitSetByuser && pods?.Items.Count < target.MaxReplica)
             {
@@ -142,25 +143,8 @@ namespace CustomScaler
             }
         }
 
-        private async Task CheckAndCreateService(V1StatefulSet statefulSet)
-        {
-            var pods = await _kubernetesService.GetStatefullPods(statefulSet);
-            V1Service? previousService = null;
-            foreach (var pod in pods)
-            {
-                var service = await _kubernetesService.GetService(pod.Metadata.Name);
-                if (service == null && previousService !=null)
-                {
-                    await _kubernetesService.CreateNewService(previousService,pod.Metadata.Name);
-                }
-                if (service != null)
-                {
-                    previousService = service;
-                }
-            }
-        }
-
-        public async Task ScaledeploymentVertically(VpaTarget target)
+    
+        private async Task ScaledeploymentVertically(VpaTarget target)
         {
             _logger.LogInformation($"VPA(Deployment): target: {target.Name}, MaxMemory:{target.MaxMemory}, metrics for scaling: {target.PromoQuery}");
             var deployment = await _kubernetesService.GetDeployment(target.Name);
@@ -174,7 +158,7 @@ namespace CustomScaler
 
         }
 
-        public async Task ScaleStatefulsetVertically(VpaTarget target)
+        private async Task ScaleStatefulsetVertically(VpaTarget target)
         {
 
             _logger.LogInformation($"VPA(Statefulset): target: {target.Name}, MaxMemory:{target.MaxMemory}, metrics for scaling: {target.PromoQuery}");
@@ -189,18 +173,34 @@ namespace CustomScaler
 
         }
 
+        /*TODO: Need to make it generic, right now, memory/cpu data is getting fetched from kuberentes metrics end point.
+            Need to decide based on configuration whether to get from k8s API or prometheuse or always use any one for memory/CPU metrics.
+            Using prometheus has a issue for statefulset, since even after pod restart, its holding memory data for previous pod and new pod after restart.
+            And not able to identify correct pod which would need to be used since name would be same for statefulset. We can use ID but needs some research*/
         public async Task AvoidScalingVertically(V1PodList? podList, VpaTarget target)
         {
-            var queries = target.PromoQuery.Split("&&");
+           
+            var queries = target.PromoQuery.Split("&&");// TODO: This need to generic, Need to use Utils method.
+            var metricsList = await _kubernetesService.GetMetrics();
+            if (metricsList == null)
+            {
+                _logger.LogWarning("Resource usage metrics is not available.");
+                return;
+            }
             foreach (var pod in podList)
             {
-                var formattedMemoryQuery = string.Format(queries[1], "{pod=\"" + pod.Metadata.Name + "\"}");
-                var podmemoryResponse = await _prometheusService.QueryPrometheus(formattedMemoryQuery, DateTime.UtcNow.AddMinutes(-1), DateTime.UtcNow);
+               // var result = await Validate(pod, target);//TODO : Need to work on this.
+                var resourceUsed = metricsList.Items.FirstOrDefault(x => x.Metadata.Name == pod.Metadata.Name)?.Containers.FirstOrDefault(c => c.Name == target.ContainerName)?.Usage["memory"];
+                if (resourceUsed == null)
+                {
+                    _logger.LogWarning($"Resource used is null for the pod {pod.Metadata.Name}");
+                    continue;
+                }
                 var largeCartQueryFormatted = string.Format(queries[0], "{machine=\"" + pod.Metadata.Name + "\"}");
-                var podLargeCartResponse = await _prometheusService.QueryPrometheus(largeCartQueryFormatted, DateTime.UtcNow.AddMinutes(-1), DateTime.UtcNow);
-                var memoryConsumedByPod = KubernetesJson.Deserialize<ResourceQuantity>($"\"{Convert.ToDecimal(podmemoryResponse?.Data?.Result[0]?.values[1]?.GetString())}\"");
+                var podLargeCartResponse = await _prometheusService.QueryPrometheus(largeCartQueryFormatted, DateTime.UtcNow.AddMinutes(-10), DateTime.UtcNow);
                 var maxVPALimit = KubernetesJson.Deserialize<ResourceQuantity>($"\"{target.MaxMemory}\"");
                 ResourceQuantity? memoryRequested = null;
+
                 //If pod resource request is set in its manifest file
                 //And Current pod memory consumption is beyond resource request
                 //And no large cart 
@@ -208,53 +208,88 @@ namespace CustomScaler
                 //If not we may need to create after deleting. since there is no direct restart API.
                 if (pod.Spec.Containers.Any(x => x.Resources.Requests != null
                 && x.Resources.Requests.TryGetValue("memory", out memoryRequested)
-                && memoryConsumedByPod >= memoryRequested)
+                && memoryRequested !=null && resourceUsed >= memoryRequested)
                 && (podLargeCartResponse == null
                 || !podLargeCartResponse.Data.Result.Any()
                 || Convert.ToDecimal(podLargeCartResponse.Data.Result[0].values[1].GetString()) <= 0))
                 {
-                    _logger.LogInformation($"VPA: {pod.Metadata.Name} doesn't have any large cart on it but memory consumed {memoryConsumedByPod.Value} has crossed it requested resource {memoryRequested.Value}, so pod will be deleted.");
+                    _logger.LogInformation($"VPA: {pod.Metadata.Name} doesn't have any large cart on it but memory consumed {resourceUsed.Value} has crossed it requested resource {memoryRequested.Value}, so pod will be deleted.");
                     await _kubernetesService.DeletePod(pod.Metadata.Name);
-                    //if (target.K8Kind == K8Kind.Statefulset)
-                    //{
-                    //    await _kubernetesService.DeleteService(pod.Metadata.Name);
-                    //}
+
                     _logger.LogInformation($"VPA: Pod {pod.Metadata.Name} got deleted.");
                 }
-                else if (memoryConsumedByPod >= maxVPALimit)
+                else if (resourceUsed >= maxVPALimit)
                 {
                     await _kubernetesService.DeletePod(pod.Metadata.Name);
-                    //if (target.K8Kind == K8Kind.Statefulset)
-                    //{
-                    //    await _kubernetesService.DeleteService(pod.Metadata.Name);
-                    //}
-                    _logger.LogInformation($"VPA:Memory consumbed by Pod: {memoryConsumedByPod.Value}, Max vpa limit of {maxVPALimit.Value} is breached, so pod {pod.Metadata.Name} got deleted.");
+                    _logger.LogInformation($"VPA:Memory consumbed by Pod: {resourceUsed.Value}, Max vpa limit of {maxVPALimit.Value} is breached, so pod {pod.Metadata.Name} got deleted.");
                 }
                 else
                 {
-                    _logger.LogInformation($"VPA: No changes since memory consuption {memoryConsumedByPod.Value} is not more than memory requested {memoryRequested.Value} for the pod {pod.Metadata.Name} and no large cart on it.");
+                    _logger.LogInformation($"VPA: No changes since memory consuption {resourceUsed.Value} is not more than memory requested {memoryRequested.Value} for the pod {pod.Metadata.Name} or may be large cart on the pod.");
                 }
             }
 
         }
 
-        private async Task<Tuple<ResourceQuantity, ResourceQuantity>?> GetAverageMemory(V1PodList? podList, string query)
+        /// <summary>
+        /// Generic method for querying and validating against threshold.
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="threshold"></param>
+        /// <param name="pod"></param>
+        /// <returns></returns>
+        private async Task<bool> Validate(V1Pod pod, VpaTarget target)
         {
-            decimal totalMemory = 0;
+            var queryList = Util.GetQueryData(target.PromoQuery);
+            var valid = true;
+            foreach (var (key , val) in queryList)
+            {
+                var formattedQuery = string.Format(key, "{pod=\"" + pod.Metadata.Name + "\"}");
+                var podmemoryResponse = await _prometheusService.QueryPrometheus(formattedQuery, DateTime.UtcNow.AddMinutes(-1), DateTime.UtcNow);
+                if (podmemoryResponse == null || podmemoryResponse.Data == null || !podmemoryResponse.Data.Result.Any() || podmemoryResponse.Data.Result[0].values.Count < 2)
+                {
+                    _logger.LogInformation($"VPA: No changes since pod {pod.Name} doesn't have any data available in prometheus. ");
+                    valid=valid && true;
+                }
+                //TODO: We can't just use ">=" blindly, instead we need to use what is been defined in appsettings.
+                if (Convert.ToDecimal(podmemoryResponse.Data.Result[0].values[1].GetString()) >= val)
+                    valid = valid && false;
+
+                valid = valid && true;
+            }
+            return valid;  
+        }
+
+
+        /*TODO: Need to make it generic, right now, memory/cpu data is getting fetched from kuberentes metrics end point.
+         Need to decide based on configuration whether to get from k8s API or prometheuse or always use any one for memory/CPU metrics.
+         Using prometheus has a issue for statefulset, since even after pod restart, its holding memory data for previous pod and new pod after restart.
+         And not able to identify correct pod which would need to be used since name would be same for statefulset. We can use ID but needs some research*/
+        private async Task<Tuple<ResourceQuantity, ResourceQuantity>?> GetAverageMemory(V1PodList? podList, string query, string containerName)
+        {
+            //decimal totalMemory = 0;
             if (podList == null)
                 return null;
-
+            var metricsList = await _kubernetesService.GetMetrics();
+            if(metricsList == null)
+            {
+                _logger.LogWarning("Resource usage metrics is not available.");
+                return null;
+            }
+            ResourceQuantity? totalResourceUsed = null;
             foreach (var pod in podList)
             {
-                var formattedMemoryQuery = string.Format(query, "{pod=\"" + pod.Metadata.Name + "\"}");
-                var podmemoryResponse = await _prometheusService.QueryPrometheus(formattedMemoryQuery, DateTime.UtcNow.AddMinutes(-1), DateTime.UtcNow);
-                if (podmemoryResponse?.Data != null)
-                {
-                    totalMemory += Convert.ToDecimal(podmemoryResponse.Data.Result[0].values[1].GetString());
+                var resourceUsed= metricsList.Items.FirstOrDefault(x=> x.Metadata.Name == pod.Metadata.Name)?.Containers.FirstOrDefault(c=>c.Name== containerName)?.Usage["memory"];
+                if (resourceUsed == null)
+                { 
+                    continue; 
                 }
+                totalResourceUsed += resourceUsed;
             }
-            var averageMemory = totalMemory / podList.Items.Count;
-            var averageMemoryWithOneLessPod = totalMemory / (podList.Items.Count - 1);
+
+            var averageMemory = totalResourceUsed / podList.Items.Count; //totalMemory / podList.Items.Count;
+            var averageMemoryWithOneLessPod = totalResourceUsed / (podList.Items.Count-1); //totalMemory / (podList.Items.Count - 1);
+            //return Tuple.Create(averageMemory, averageMemoryWithOneLessPod);
             return Tuple.Create(KubernetesJson.Deserialize<ResourceQuantity>($"\"{averageMemory}\""), KubernetesJson.Deserialize<ResourceQuantity>($"\"{averageMemoryWithOneLessPod}\""));
         }
 

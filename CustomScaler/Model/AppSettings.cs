@@ -16,6 +16,7 @@ namespace CustomScaler.Model
         public int MinReplica { get; set; }
         public string PromoQuery { get; set; }
         public string TargetLimit { get; set; }
+        public string ContainerName { get; set; }
     }
 
     public class VpaTarget
@@ -25,6 +26,7 @@ namespace CustomScaler.Model
         public K8Kind K8Kind { get; set; }
         public string MaxMemory { get; set; }
         public string PromoQuery { get; set; }
+        public string ContainerName { get; set; }
     }
 
     public enum K8Kind
